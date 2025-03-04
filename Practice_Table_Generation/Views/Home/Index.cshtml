@@ -1,24 +1,45 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+	ViewData["Title"] = "Home Page";
 }
 
 @model TableGenetation
 
 <form method="post" asp-action="GenerateTotalHours">
-    <div>
-        <label>No of Working Days (1-7):</label>
-        <input type="number" name="NoOfWorkingDays" value="@Model.NoOfWorkingDays" />
-    </div>
-    <div>
-        <label>No of Subjects per Day (1-8):</label>
-        <input type="number" name="NoOfSubjectsPerDay" value="@Model.NoOfSubjectsPerDay" />
-    </div>
-    <div>
-        <label>Total Subjects:</label>
-        <input type="number" name="TotalSubjects" value="@Model.TotalSubjects" />
-    </div>
-    <div>
-        <button type="submit">Generate Total Hours</button>
-    </div>
+	<div>
+		<label>No of Working Days (1-7):</label>
+		<input type="number" asp-for="WorkingDays" id="NoOfWorkingDays" />
+		<span asp-validation-for="WorkingDays"></span>
+	</div>
+	<div>
+		<label>No of Subjects per Day (1-8):</label>
+		<input type="number" asp-for="SubjectsPerDay" id="NoOfSubjectsPerDay" />
+		<span asp-validation-for="SubjectsPerDay"></span>
+	</div>
+	<div>
+		<label>Total Subjects:</label>
+		<input type="number" asp-for="TotalSubjects" id="TotalSubjects" />
+		<span asp-validation-for="TotalSubjects"></span>
+	</div>
+	<div>
+		<label>Total Hours:</label>
+		<input type="text" id="TotalHours" asp-for="TotalHours" />
+	</div>
+	<div>
+		<button type="submit">Generate Total Hours</button>
+	</div>
 </form>
 
+
+@section Scripts {
+	<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+	<script>
+		$(document).on('keyup', '#NoOfWorkingDays, #NoOfSubjectsPerDay', function () {
+			var workingDays = $('#NoOfWorkingDays').val();
+			var subjectsPerDay = $('#NoOfSubjectsPerDay').val();
+			if (workingDays > 0 && subjectsPerDay > 0) {
+				var totalHours = workingDays * subjectsPerDay;
+				$('#TotalHours').val(totalHours);
+			}
+		});
+	</script>
+}

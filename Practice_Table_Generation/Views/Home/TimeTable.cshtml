@@ -1,0 +1,33 @@
+﻿@model string[,]
+
+@{
+    ViewData["Title"] = "Generated Timetable";
+}
+
+<h2>Generated Timetable</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Day/Period</th>
+            @for (int period = 0; period < Model.GetLength(1); period++)
+            {
+                <th>Period @period</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @for (int day = 0; day < Model.GetLength(0); day++)
+        {
+            <tr>
+                <th>Day @day</th>
+                @for (int period = 0; period < Model.GetLength(1); period++)
+                {
+                    <td>@Model[day, period]</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a href="@Url.Action("EnterSubjectHours", "YourControllerName")" class="btn btn-primary">Back to Enter Subject Hours</a>

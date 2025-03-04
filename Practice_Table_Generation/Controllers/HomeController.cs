@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Xml;
 using Microsoft.AspNetCore.Mvc;
 using Practice_Table_Generation.Models;
 
@@ -25,48 +26,17 @@ namespace Practice_Table_Generation.Controllers
         [HttpPost]
         public IActionResult GenerateTotalHours(TableGenetation model)
         {
-            if (model.NoOfWorkingDays < 1 || model.NoOfWorkingDays > 7)
-            {
-                ModelState.AddModelError("NoOfWorkingDays", "Please enter a number between 1 and 7.");
-            }
-
-            if (model.NoOfSubjectsPerDay < 1 || model.NoOfSubjectsPerDay > 8)
-            {
-                ModelState.AddModelError("NoOfSubjectsPerDay", "Please enter a number between 1 and 8.");
-            }
-
-            if (model.TotalSubjects <= 0)
-            {
-                ModelState.AddModelError("TotalSubjects", "Please enter a positive number for total subjects.");
-            }
-
-            // Calculate the total hours for the week
-            model.TotalHours = model.NoOfWorkingDays * model.NoOfSubjectsPerDay;
-
-            if (ModelState.IsValid)
-            {
-                // Redirect to the second form to get subject hours
-                return RedirectToAction("EnterSubjectHours", new { totalSubjects = model.TotalSubjects });
-            }
-
-            //return View("Index", model);
-            return RedirectToAction("EnterSubjectHours", new { totalSubjects = model.TotalSubjects });
+            return RedirectToAction("EnterSubjectHours", model);
         }
 
         [HttpGet]
-        public IActionResult EnterSubjectHours(int totalSubjects)
+        public IActionResult EnterSubjectHours(TableGenetation model)
         {
-            var model = new TableGenetation
-            {
-                TotalSubjects = totalSubjects,
-                SubjectHoursList = new List<SubjectHours>()
-            };
-
-            for (int i = 0; i < totalSubjects; i++)
+            model.SubjectHoursList = new List<SubjectHours>();
+            for (int i = 0; i < model.TotalSubjects; i++)
             {
                 model.SubjectHoursList.Add(new SubjectHours());
             }
-
             return View(model);
         }
 
@@ -76,32 +46,48 @@ namespace Practice_Table_Generation.Controllers
             if (model.SubjectHoursList.Sum(x => x.Hours) != model.TotalHours)
             {
                 ModelState.AddModelError("SubjectHoursList", "Total hours entered for subjects must equal total hours for the week.");
+                return RedirectToAction("EnterSubjectHours", model);
             }
 
             if (ModelState.IsValid)
             {
-                // Generate timetable based on entered subject hours
                 var timetable = GenerateTimetableFromInput(model);
-                return View("GeneratedTimetable", timetable);
+                return RedirectToAction("Timetable", timetable);
             }
 
             return View("EnterSubjectHours", model.TotalSubjects);
         }
 
+        public IActionResult Timetable(string[,] timetable)
+        {
+            return View(timetable);
+        }
+
         private string[,] GenerateTimetableFromInput(TableGenetation model)
         {
-            var timetable = new string[model.NoOfWorkingDays, model.NoOfSubjectsPerDay];
+            var timetable = new string[(int)model.WorkingDays, (int)model.SubjectsPerDay];
 
-            // Distribute subjects based on entered hours
             var subjectsWithHours = model.SubjectHoursList.Select(x => new { x.SubjectName, x.Hours }).ToList();
-            int subjectIndex = 0;
+            List<string> subjectList = new List<string>();
 
-            // Create the timetable by placing subjects in their respective hours
-            for (int day = 0; day < model.NoOfWorkingDays; day++)
+            foreach (var subject in subjectsWithHours)
             {
-                for (int period = 0; period < model.NoOfSubjectsPerDay; period++)
+                for (int i = 0; i < subject.Hours; i++)
                 {
-                    timetable[day, period] = subjectsWithHours[subjectIndex % subjectsWithHours.Count].SubjectName;
+                    subjectList.Add(subject.SubjectName);
+                }
+            }
+
+            Random rand = new Random();
+            subjectList = subjectList.OrderBy(x => rand.Next()).ToList();
+
+
+            int subjectIndex = 0;
+            for (int day = 0; day < model.WorkingDays; day++)
+            {
+                for (int period = 0; period < model.SubjectsPerDay; period++)
+                {
+                    timetable[day, period] = subjectList[subjectIndex];
                     subjectIndex++;
                 }
             }

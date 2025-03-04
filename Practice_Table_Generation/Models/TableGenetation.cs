@@ -1,13 +1,19 @@
-﻿namespace Practice_Table_Generation.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Practice_Table_Generation.Models
 {
     public class TableGenetation
     {
-        public int NoOfWorkingDays { get; set; } // 1 to 7
-        public int NoOfSubjectsPerDay { get; set; } // 1 to 8
-        public int TotalSubjects { get; set; } // Positive number
-        public int TotalHours { get; set; } // Calculated hours for the week
+        [Required]
+        [RegularExpression(@"[0-9]{1,7}")]
+        public int? WorkingDays { get; set; }
+		[Required]
+		[RegularExpression(@"[0-9]{1,9}")]
+		public int? SubjectsPerDay { get; set; }
+		[Required]
+		public int? TotalSubjects { get; set; }
+        public int? TotalHours { get; set; }
 
-        // List of subjects and their respective hours
         public List<SubjectHours> SubjectHoursList { get; set; }
 
     }
