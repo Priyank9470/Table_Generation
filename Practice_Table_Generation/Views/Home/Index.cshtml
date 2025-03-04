@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@model TableGenetation
+
+<form method="post" asp-action="GenerateTotalHours">
+    <div>
+        <label>No of Working Days (1-7):</label>
+        <input type="number" name="NoOfWorkingDays" value="@Model.NoOfWorkingDays" />
+    </div>
+    <div>
+        <label>No of Subjects per Day (1-8):</label>
+        <input type="number" name="NoOfSubjectsPerDay" value="@Model.NoOfSubjectsPerDay" />
+    </div>
+    <div>
+        <label>Total Subjects:</label>
+        <input type="number" name="TotalSubjects" value="@Model.TotalSubjects" />
+    </div>
+    <div>
+        <button type="submit">Generate Total Hours</button>
+    </div>
+</form>
+
