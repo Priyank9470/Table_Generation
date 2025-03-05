@@ -1,33 +1,43 @@
-﻿@model string[,]
+﻿@model TableGenetation
 
 @{
-    ViewData["Title"] = "Generated Timetable";
+    ViewData["Title"] = "Generated Time Table";
 }
 
-<h2>Generated Timetable</h2>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Day/Period</th>
-            @for (int period = 0; period < Model.GetLength(1); period++)
+<h2>Timetable</h2>
+<hr />
+<div class="row">
+    <div class="col-lg-2 col-12">
+        <div><b>Total Hours:</b> @Model.TotalHours</div>
+        <div><b>Subjects per day:</b> @Model.SubjectsPerDay</div>
+        <div><b>Working days:</b> @Model.WorkingDays</div>
+    </div>
+    <div class="col-lg-10 col-12 mt-lg-0 mt-3">
+        <div class="fw-bold"><u>Subject wise summary</u></div>
+        <div class="d-flex gap-3">
+            @foreach (var subjectHours in Model.SubjectHoursList)
             {
-                <th>Period @period</th>
+                <div>
+                    <div><b>Subject Name:</b> @subjectHours.SubjectName</div>
+                    <div><b>Subject Hours:</b> @subjectHours.Hours</div>
+                </div>
             }
-        </tr>
-    </thead>
+        </div>
+    </div>
+</div>
+<hr />
+<table class="table table-bordered">
     <tbody>
-        @for (int day = 0; day < Model.GetLength(0); day++)
+        @for (int day = 0; day < Model.TimeTable.GetLength(0); day++)
         {
             <tr>
-                <th>Day @day</th>
-                @for (int period = 0; period < Model.GetLength(1); period++)
+                @for (int period = 0; period < Model.TimeTable.GetLength(1); period++)
                 {
-                    <td>@Model[day, period]</td>
+                    <td>@Model.TimeTable[day, period]</td>
                 }
             </tr>
         }
     </tbody>
 </table>
 
-<a href="@Url.Action("EnterSubjectHours", "YourControllerName")" class="btn btn-primary">Back to Enter Subject Hours</a>
+<a href="@Url.Action("EnterSubjectHours", "Home",Model)" class="btn btn-primary">Back to Enter Subject Hours</a>

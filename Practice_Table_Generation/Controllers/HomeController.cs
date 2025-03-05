@@ -1,6 +1,9 @@
 using System.Diagnostics;
+using System.Reflection;
 using System.Xml;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Practice_Table_Generation.Models;
 
 namespace Practice_Table_Generation.Controllers
@@ -32,6 +35,12 @@ namespace Practice_Table_Generation.Controllers
         [HttpGet]
         public IActionResult EnterSubjectHours(TableGenetation model)
         {
+            if (HttpContext.Session.GetString("TimeTable") != null)
+            {
+                var timeTable = JsonConvert.DeserializeObject<TableGenetation>(HttpContext.Session.GetString("TimeTable"));
+                HttpContext.Session.Clear();
+                return View(timeTable);
+            }
             model.SubjectHoursList = new List<SubjectHours>();
             for (int i = 0; i < model.TotalSubjects; i++)
             {
@@ -43,27 +52,48 @@ namespace Practice_Table_Generation.Controllers
         [HttpPost]
         public IActionResult GenerateTimetable(TableGenetation model)
         {
+            if (model.SubjectHoursList.Any(x => x.SubjectName.Equals(string.Empty)))
+            {
+                TempData["ValidationMessage"] = $"Please enter all subject name";
+                return View("EnterSubjectHours", model);
+            }
+            if (model.SubjectHoursList.Any(x => x.Hours <= 0))
+            {
+                TempData["ValidationMessage"] = $"Please enter hours for all subjects";
+                return View("EnterSubjectHours", model);
+            }
             if (model.SubjectHoursList.Sum(x => x.Hours) != model.TotalHours)
             {
-                ModelState.AddModelError("SubjectHoursList", "Total hours entered for subjects must equal total hours for the week.");
-                return RedirectToAction("EnterSubjectHours", model);
+                TempData["ValidationMessage"] = $"Total hours entered for subjects must equal to total hours: {model.TotalHours} for the week.";
+                return View("EnterSubjectHours", model);
             }
-
-            if (ModelState.IsValid)
-            {
-                var timetable = GenerateTimetableFromInput(model);
-                return RedirectToAction("Timetable", timetable);
-            }
-
-            return View("EnterSubjectHours", model.TotalSubjects);
+            HttpContext.Session.SetString("TimeTableModel", JsonConvert.SerializeObject(model));
+            return RedirectToAction("TimeTable", "Home");
         }
 
-        public IActionResult Timetable(string[,] timetable)
+        public IActionResult TimeTable()
         {
-            return View(timetable);
+            TableGenetation timeTableModel = new TableGenetation();
+            if (HttpContext.Session.GetString("TimeTableModel") != null)
+            {
+                timeTableModel = JsonConvert.DeserializeObject<TableGenetation>(HttpContext.Session.GetString("TimeTableModel"));
+            }
+            if (HttpContext.Session.GetString("TimeTable") != null)
+            {
+                var existingTimeTable = JsonConvert.DeserializeObject<TableGenetation>(HttpContext.Session.GetString("TimeTable"));
+                return View(existingTimeTable);
+            }
+            if (timeTableModel != null && timeTableModel.SubjectHoursList != null && timeTableModel.SubjectHoursList.Count() > 0)
+            {
+                var timetable = GenerateTimetableFromInput(timeTableModel);
+                HttpContext.Session.SetString("TimeTable", JsonConvert.SerializeObject(timetable));
+                return View(timetable);
+            }
+            TempData["InitialMessage"] = "Enter the hours details first";
+            return View("index");
         }
 
-        private string[,] GenerateTimetableFromInput(TableGenetation model)
+        private TableGenetation GenerateTimetableFromInput(TableGenetation model)
         {
             var timetable = new string[(int)model.WorkingDays, (int)model.SubjectsPerDay];
 
@@ -81,7 +111,6 @@ namespace Practice_Table_Generation.Controllers
             Random rand = new Random();
             subjectList = subjectList.OrderBy(x => rand.Next()).ToList();
 
-
             int subjectIndex = 0;
             for (int day = 0; day < model.WorkingDays; day++)
             {
@@ -91,8 +120,8 @@ namespace Practice_Table_Generation.Controllers
                     subjectIndex++;
                 }
             }
-
-            return timetable;
+            model.TimeTable = timetable;
+            return model;
         }
     }
 }

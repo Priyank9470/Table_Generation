@@ -1,30 +1,41 @@
 ﻿@model Practice_Table_Generation.Models.TableGenetation
 
 @{
-	ViewData["Title"] = "EnterSubjectHours";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "EnterSubjectHours";
 }
 
 <form method="post" asp-action="GenerateTimetable">
-	<div>
-		<input type="hidden" asp-for="WorkingDays" />
-		<input type="hidden" asp-for="SubjectsPerDay" />
-		<input type="hidden" asp-for="TotalSubjects" />
-		<input type="hidden" asp-for="TotalHours" />
-		<h3>Enter Hours for Each Subject</h3>
-		@for (int i = 0; i < Model.TotalSubjects; i++)
-		{
-			<div>
-				<label>@($"Subject {i + 1}")</label>
-				<input type="text" name="SubjectHoursList[@i].SubjectName" placeholder="Subject Name" />
-				<span asp-validation-for="SubjectHoursList[@i].SubjectName"></span>
-				<input type="number" name="SubjectHoursList[@i].Hours" placeholder="Hours" />
-				<span asp-validation-for="SubjectHoursList[@i].Hours"></span>
-			</div>
-		}
-	</div>
-	<div>
-		<button type="submit">Generate Timetable</button>
-	</div>
+    <div class="row">
+        <input type="hidden" asp-for="WorkingDays" />
+        <input type="hidden" asp-for="SubjectsPerDay" />
+        <input type="hidden" asp-for="TotalSubjects" />
+        <input type="hidden" asp-for="TotalHours" />
+        @for (int i = 0; i < Model.TotalSubjects; i++)
+        {
+            <div class="col-lg-6 col-12">
+                <label class="form-label mt-4 fw-bold">@($"Subject {i + 1}")</label>
+                <div class="mb-3">
+                    <input class="form-control" type="text" asp-for="SubjectHoursList[@i].SubjectName" placeholder="Subject Name" />
+                    <span class="text-danger" asp-validation-for="SubjectHoursList[@i].SubjectName"></span>
+                </div>
+                <div>
+                    <input class="form-control" type="number" asp-for="SubjectHoursList[@i].Hours" placeholder="Hours" />
+                    <span class="text-danger" asp-validation-for="SubjectHoursList[@i].Hours"></span>
+                </div>
+            </div>
+        }
+    </div>
+    <div>
+        <button class="btn btn-success mt-3" type="submit">Generate Timetable</button>
+    </div>
 </form>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        if('@TempData["ValidationMessage"]' != ''){
+            alert('@TempData["ValidationMessage"]')
+        }
+    </script>
+}
 
